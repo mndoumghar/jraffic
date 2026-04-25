@@ -2,64 +2,46 @@ package simulation;
 
 import model.Direction;
 import model.Vehicle;
-import utils.Constants;
-
 import java.util.Random;
 
 public class SpawnManager {
 
-    private long lastSpawnTime = 0;
-    private Random random = new Random();
+    private static final int    W          = 900;
+    private static final int    H          = 800;
+    private static final double SAFE_DIST  = 60.0;
+
+    private final Random random = new Random();
 
     public void trySpawn(SimulationEngine engine, Direction dir) {
-        long now = System.currentTimeMillis();
-        if (now - lastSpawnTime >= Constants.SPAWN_COOLDOWN_MS) {
-            spawnVehicle(engine, dir);
-            lastSpawnTime = now;
+        double[] pos = spawnPosition(dir);
+        if (canSpawn(engine, dir, pos[0], pos[1])) {
+            engine.addVehicle(new Vehicle(pos[0], pos[1], dir));
         }
     }
 
     public void trySpawnRandom(SimulationEngine engine) {
         Direction[] dirs = Direction.values();
-        Direction dir = dirs[random.nextInt(dirs.length)];
-        trySpawn(engine, dir);
+        trySpawn(engine, dirs[random.nextInt(dirs.length)]);
     }
 
-    private void spawnVehicle(SimulationEngine engine, Direction dir) {
-        double x = 0;
-        double y = 0;
-        
-        double laneOffset = Constants.ROAD_WIDTH / 4.0;
-        double halfCar = Constants.VEHICLE_WIDTH / 2.0;
-
+    private double[] spawnPosition(Direction dir) {
+        double cx = W / 2.0;
+        double cy = H / 2.0;
         switch (dir) {
-            case NORTH -> {
-                x = Constants.CENTER_X + laneOffset - halfCar;
-                y = Constants.WINDOW_HEIGHT + Constants.VEHICLE_LENGTH;
-            }
-            case SOUTH -> {
-                x = Constants.CENTER_X - laneOffset - halfCar;
-                y = -Constants.VEHICLE_LENGTH;
-            }
-            case EAST -> {
-                y = Constants.CENTER_Y + laneOffset - halfCar;
-                x = -Constants.VEHICLE_LENGTH;
-            }
-            case WEST -> {
-                y = Constants.CENTER_Y - laneOffset - halfCar;
-                x = Constants.WINDOW_WIDTH + Constants.VEHICLE_LENGTH;
-            }
+            case NORTH: return new double[]{ cx + 15, H - 35 };
+            case SOUTH: return new double[]{ cx - 45, 10      };
+            case WEST:  return new double[]{ W - 35,  cy - 45 };
+            case EAST:  return new double[]{ 10,      cy + 15 };
+            default:    return new double[]{ 0, 0 };
         }
+    }
 
+    private boolean canSpawn(SimulationEngine engine, Direction dir, double x, double y) {
         for (Vehicle v : engine.getVehicles()) {
-            if (v.getDirection() == dir) {
-                if (Math.abs(v.getX() - x) < Constants.VEHICLE_WIDTH && 
-                    Math.abs(v.getY() - y) < (Constants.VEHICLE_LENGTH + Constants.SAFETY_GAP)) {
-                    return;
-                }
+            if (v.getDirection() == dir && Math.hypot(v.getX() - x, v.getY() - y) < SAFE_DIST) {
+                return false;
             }
         }
-
-        engine.addVehicle(new Vehicle(x, y, dir));
+        return true;
     }
 }

@@ -18,6 +18,7 @@ public class KeyboardHandler {
                 case LEFT -> spawner.trySpawn(engine, Direction.WEST);
                 case RIGHT -> spawner.trySpawn(engine, Direction.EAST);
                 case R -> spawner.trySpawnRandom(engine);
+                case ESCAPE -> javafx.application.Platform.exit();
             }
         });
     }
