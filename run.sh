@@ -1,19 +1,19 @@
+#!/bin/bash
 
-find . -name "*.class" -delete
+cd src || exit 1
 
+rm -rf build
+mkdir build
 
-javac --module-path ~/javafx-sdk/lib \
+javac \
+--module-path ~/javafx-sdk/lib \
 --add-modules javafx.controls,javafx.graphics \
--d out \
-src/model/*.java \
-src/traffic/*.java \
-src/simulation/*.java \
-src/ui/*.java \
-src/input/*.java \
-src/utils/*.java
+-d build \
+$(find . -name "*.java")
 
-
-java --module-path ~/javafx-sdk/lib \
+java \
+--enable-native-access=javafx.graphics \
+--module-path ~/javafx-sdk/lib \
 --add-modules javafx.controls,javafx.graphics \
--cp out \
-ui.MainApp
+-cp build \
+ui.MainApp 2>&1 | grep -v -E "dconf|Unsafe|OffHeapArray"

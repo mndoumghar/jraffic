@@ -1,4 +1,5 @@
 # JavaFX Traffic Simulation
+```
 src/
 ├── input/
 │   └── KeyboardHandler.java      # Captures user keyboard input
@@ -16,7 +17,10 @@ src/
 │   ├── MainApp.java              # JavaFX entry point and AnimationTimer
 │   └── Renderer.java             # Graphical drawing engine
 └── utils/
-    └── Constants.java            # Unified metrics for roads and simulation
+    └── Constants.java            # Unified metrics for 
+    roads and simulation
+
+```
 
 ## HOw To  install javax
 
