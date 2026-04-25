@@ -9,6 +9,8 @@ import java.util.List;
 public class SimulationEngine {
 
     private List<Vehicle> vehicles = new ArrayList<>();
+    private CollisionManager collisionManager = new CollisionManager();
+    private SpawnManager spawnManager = new SpawnManager();
     private TrafficController controller;
 
     public SimulationEngine(TrafficController controller) {
@@ -20,11 +22,11 @@ public class SimulationEngine {
     }
 
     public void update(long now) {
-
         controller.update(now);
 
         for (Vehicle v : vehicles) {
-            v.update(controller, now);
+            boolean collisionStop = collisionManager.isBlocked(v, vehicles);
+            v.update(controller, now, collisionStop);
         }
     }
 
@@ -34,5 +36,9 @@ public class SimulationEngine {
 
     public TrafficController getController() {
         return controller;
+    }
+    
+    public SpawnManager getSpawnManager() {
+        return spawnManager;
     }
 }

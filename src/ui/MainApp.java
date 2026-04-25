@@ -9,29 +9,27 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import input.KeyboardHandler;
-
-import model.Vehicle;
-import model.Direction;
 import simulation.SimulationEngine;
 import traffic.TrafficController;
+import utils.Constants;
 
 public class MainApp extends Application {
-    Renderer renderer = new Renderer();
+    private Renderer renderer = new Renderer();
+    private TrafficController controller = new TrafficController();
+    private SimulationEngine engine = new SimulationEngine(controller);
 
-    TrafficController controller = new TrafficController();
-    SimulationEngine engine = new SimulationEngine(controller);
     @Override
     public void start(Stage stage) {
-        Canvas canvas = new Canvas(800, 800);
+        Canvas canvas = new Canvas(Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Pane root = new Pane(canvas);
         Scene scene = new Scene(root);
 
-           
         stage.setScene(scene);
         stage.setTitle("Traffic Simulation");
+        stage.setResizable(false);
         stage.show();
-               // engine.addVehicle(new Vehicle(400, 700, Direction.WEST));
+
         new KeyboardHandler(scene, engine);
 
         new AnimationTimer() {
@@ -39,24 +37,13 @@ public class MainApp extends Application {
             public void handle(long now) {
                 engine.update(now);
                 draw(gc);
-
             }
         }.start();
     }
 
-   private void draw(GraphicsContext gc) {
-
-    //gc.clearRect(0, 0, 800, 800);
-
-    renderer.drawRoads(gc);
-
-    gc.setFill(javafx.scene.paint.Color.RED);
-
-   for (Vehicle v : engine.getVehicles()) {
-    System.out.println("CAR: " + v.getX() + " " + v.getY());
-    gc.fillRect(v.getX(), v.getY(), 20, 20);
-}
-}
+    private void draw(GraphicsContext gc) {
+        renderer.draw(gc, engine);
+    }
 
     public static void main(String[] args) {
         launch();

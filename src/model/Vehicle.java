@@ -4,18 +4,11 @@ import traffic.TrafficController;
 import utils.Constants;
 
 public class Vehicle {
-    private static final double CENTER = 400;
-private static final double LANE_OFFSET = 20;
-private static final double STOP_OFFSET = 40;
 
     private double x;
     private double y;
     private Direction direction;
     private boolean stopped = false;
-     private long lastSwitchTime = 0;
-    private boolean paused =false;
-    
-   
 
     public Vehicle(double x, double y, Direction direction) {
         this.x = x;
@@ -34,63 +27,59 @@ private static final double STOP_OFFSET = 40;
         }
     }
 
-    public void stop() {
-        stopped = true;
-    }
-
-    public void go() {
-        stopped = false;
-    }
-
     public double getX() { return x; }
     public double getY() { return y; }
+    public Direction getDirection() { return direction; }
 
- 
-    public void update(TrafficController controller, long now) {
+    public void update(TrafficController controller, long now, boolean collisionStop) {
+        boolean atStopLine = isAtStopLine();
+        boolean trafficStop = false;
 
-    boolean atStopLine = isAtStopLine();
-
-    boolean canMove = true;
-
-    switch (direction) {
-
-        case NORTH, SOUTH -> {
-            if (atStopLine && !controller.getNorthSouthLight().isGreen()) {
-                canMove = false;
+        switch (direction) {
+            case NORTH, SOUTH -> {
+                if (atStopLine && !controller.getNorthSouthLight().isGreen()) {
+                    trafficStop = true;
+                }
+            }
+            case EAST, WEST -> {
+                if (atStopLine && !controller.getEastWestLight().isGreen()) {
+                    trafficStop = true;
+                }
             }
         }
 
-        case EAST, WEST -> {
-            if (atStopLine && !controller.getEastWestLight().isGreen()) {
-                canMove = false;
-            }
+        stopped = trafficStop || collisionStop;
+
+        if (!stopped) {
+            move();
         }
     }
 
-    stopped = !canMove;
+    private boolean isAtStopLine() {
+        
+        double buffer = Constants.VEHICLE_SPEED * 2;
+        
+        switch (direction) {
+            case NORTH: {
+                double stopLineY = Constants.CENTER_Y + Constants.STOP_LINE_OFFSET;
+                return y <= stopLineY && y > stopLineY - buffer;
+            }
+            case SOUTH: {
+                double frontY = y + Constants.VEHICLE_LENGTH;
+                double stopLineY = Constants.CENTER_Y - Constants.STOP_LINE_OFFSET;
+                return frontY >= stopLineY && frontY < stopLineY + buffer;
+            }
+            case EAST: {
+                double frontX = x + Constants.VEHICLE_LENGTH;
+                double stopLineX = Constants.CENTER_X - Constants.STOP_LINE_OFFSET;
+                return frontX >= stopLineX && frontX < stopLineX + buffer;
+            }
+            case WEST: {
+                double stopLineX = Constants.CENTER_X + Constants.STOP_LINE_OFFSET;
+                return x <= stopLineX && x > stopLineX - buffer;
+            }
+        }
 
-    if (!stopped) {
-        move();
+        return false;
     }
-}
-private boolean isAtStopLine() {
-
-    switch (direction) {
-
-        case NORTH:
-            return y <= CENTER + STOP_OFFSET;
-
-        case SOUTH:
-            return y >= CENTER - STOP_OFFSET;
-
-        case EAST:
-            return x >= CENTER - STOP_OFFSET;
-
-        case WEST:
-            return x <= CENTER + STOP_OFFSET;
-    }
-
-    return false;
-}
-
 }
